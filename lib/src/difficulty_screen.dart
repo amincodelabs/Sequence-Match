@@ -10,65 +10,54 @@ class DifficultyScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFFFF9C4),
       body: SafeArea(
         child: Center(
-          child: Padding(
-            // add a bit of horizontal padding so buttons aren’t flush to the edges
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Choose Difficulty',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFFF7043),
-                  ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Choose Difficulty',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFFF7043),
                 ),
-                const SizedBox(height: 40),
-                // Wrap lets the buttons flow into a row on wide screens,
-                // but still stack vertically when there isn’t enough width.
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 20,
-                  runSpacing: 20,
-                  children: [
-                    _buildDifficultyButton(
-                      context,
-                      'Easy',
-                      '${_getGridSizeText(DifficultyLevel.easy)}\n${_getTimeText(DifficultyLevel.easy)}',
-                      Colors.green,
-                      () => _startGame(context, DifficultyLevel.easy),
-                    ),
-                    _buildDifficultyButton(
-                      context,
-                      'Medium',
-                      '${_getGridSizeText(DifficultyLevel.medium)}\n${_getTimeText(DifficultyLevel.medium)}',
-                      Colors.orange,
-                      () => _startGame(context, DifficultyLevel.medium),
-                    ),
-                    _buildDifficultyButton(
-                      context,
-                      'Hard',
-                      '${_getGridSizeText(DifficultyLevel.hard)}\n${_getTimeText(DifficultyLevel.hard)}',
-                      Colors.red,
-                      () => _startGame(context, DifficultyLevel.hard),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 40),
+              _buildDifficultyButton(
+                context,
+                'Easy',
+                '${_getGridSizeText(DifficultyLevel.easy)}\n${_getTimeText(DifficultyLevel.easy)}',
+                Colors.green,
+                () => _startGame(context, DifficultyLevel.easy),
+              ),
+              const SizedBox(height: 20),
+              _buildDifficultyButton(
+                context,
+                'Medium',
+                '${_getGridSizeText(DifficultyLevel.medium)}\n${_getTimeText(DifficultyLevel.medium)}',
+                Colors.orange,
+                () => _startGame(context, DifficultyLevel.medium),
+              ),
+              const SizedBox(height: 20),
+              _buildDifficultyButton(
+                context,
+                'Hard',
+                '${_getGridSizeText(DifficultyLevel.hard)}\n${_getTimeText(DifficultyLevel.hard)}',
+                Colors.red,
+                () => _startGame(context, DifficultyLevel.hard),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
-
+  
   String _getGridSizeText(DifficultyLevel level) {
     return '${level.gridSize}x${DifficultyLevel.hard.gridSize} Grid';
   }
-
+  
   String _getTimeText(DifficultyLevel level) {
-    return '${(level.timeInSeconds / 60).toInt()} Minute';
+    return '${(level.timeInSeconds/60).toInt()} Minute';
   }
 
   Widget _buildDifficultyButton(
@@ -81,7 +70,7 @@ class DifficultyScreen extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 200, // unchanged
+        width: 200,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: color.withOpacity(0.2),
@@ -146,7 +135,7 @@ enum DifficultyLevel {
       case DifficultyLevel.medium:
         return 120; // 2 minutes
       case DifficultyLevel.hard:
-        return 180; // 3 minutes
+        return 180; // 3 minute
     }
   }
-}
+} 
