@@ -1,6 +1,6 @@
 # sequence_match
 
-A new Flutter project.
+A simple game memory to demonstrate simple game development with Flutter.
 
 ## Getting Started
 

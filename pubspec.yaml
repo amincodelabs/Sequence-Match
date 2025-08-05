@@ -1,5 +1,5 @@
 name: sequence_match
-description: "A new Flutter project."
+description: "A simple game memory to demonstrate simple game development with Flutter."
 publish_to: 'none'
 
 version: 1.0.0+1
