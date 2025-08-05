@@ -2,9 +2,8 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:sequence_match/src/win_screen.dart';
 import 'package:sequence_match/src/difficulty_screen.dart';
+import 'package:sequence_match/src/win_screen.dart';
 
 import 'lost_screen.dart'; // Ensure gif_view: ^1.0.1 in pubspec.yaml
 
@@ -25,15 +24,15 @@ class MemoryGameState extends State<MemoryGame> with TickerProviderStateMixin {
   late List<bool> revealed;
   int nextNumber = 1;
   int attempts = 0;
-  List<AnimationController> _controllers = [];
-  List<Animation<double>> _animations = [];
+  late List<AnimationController> _controllers;
+  late List<Animation<double>> _animations;
   String? lastMessage;
   bool isMemorizationPhase = true;
   int lastMessageAttempt = 0;
   bool showMessage = false;
   String currentMessage = '';
-  AnimationController? messageController;
-  Animation<double>? messageAnimation;
+  late AnimationController messageController;
+  late Animation<double> messageAnimation;
 
   late int remainingSeconds;
   Timer? gameTimer;
@@ -89,11 +88,10 @@ class MemoryGameState extends State<MemoryGame> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     remainingSeconds = widget.difficultyLevel.timeInSeconds;
-    _shuffleNumbers();
     _setupAnimations();
     _setupMessageAnimation();
+    _shuffleNumbers();
 
-    // Start memorization phase
     memorizationTimer = Timer(const Duration(seconds: 5), () {
       setState(() {
         isMemorizationPhase = false;
@@ -101,17 +99,15 @@ class MemoryGameState extends State<MemoryGame> with TickerProviderStateMixin {
       });
     });
 
-    // Start the game Timer
     gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         remainingSeconds--;
         if (remainingSeconds <= 0) {
           timer.cancel();
-          // If time is up, go to LostScreen
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => LostScreen(
+              builder: (_) => LostScreen(
                 difficultyLevel: widget.difficultyLevel,
               ),
             ),
@@ -122,147 +118,111 @@ class MemoryGameState extends State<MemoryGame> with TickerProviderStateMixin {
   }
 
   void _shuffleNumbers() {
-    setState(() {
-      final gridSize = widget.difficultyLevel.gridSize;
-      final totalTiles = gridSize * gridSize;
-      numbers = List.generate(totalTiles, (index) => index + 1)..shuffle();
-      revealed = List.filled(totalTiles, false);
-      nextNumber = 1;
-      attempts = 0;
-      _resetAnimations();
-    });
+    final gridSize = widget.difficultyLevel.gridSize;
+    final totalTiles = gridSize * gridSize;
+    numbers = List.generate(totalTiles, (i) => i + 1)..shuffle();
+    revealed = List.filled(totalTiles, true);
+    nextNumber = 1;
+    attempts = 0;
+    _resetAnimations();
   }
 
   void _setupAnimations() {
-    // Dispose old controllers if any
-    for (var c in _controllers) {
-      c.dispose();
-    }
-    _controllers.clear();
-    _animations.clear();
-
-    final totalTiles = widget.difficultyLevel.gridSize * widget.difficultyLevel.gridSize;
-    _controllers = List.generate(
-      totalTiles,
-      (_) => AnimationController(
-        duration: const Duration(milliseconds: 500),
+    _controllers = [];
+    _animations = [];
+    final totalTiles =
+        widget.difficultyLevel.gridSize * widget.difficultyLevel.gridSize;
+    for (var i = 0; i < totalTiles; i++) {
+      final controller = AnimationController(
         vsync: this,
-      ),
-    );
-
-    _animations = _controllers.map((controller) {
-      return Tween<double>(begin: 0, end: pi).animate(
-        CurvedAnimation(parent: controller, curve: Curves.easeInOut),
+        duration: const Duration(milliseconds: 500),
       );
-    }).toList();
+      _controllers.add(controller);
+      _animations.add(
+        Tween<double>(begin: 0, end: pi).animate(
+          CurvedAnimation(parent: controller, curve: Curves.easeInOut),
+        ),
+      );
+    }
   }
 
   void _setupMessageAnimation() {
     messageController = AnimationController(
-      duration: const Duration(milliseconds: 500),
       vsync: this,
+      duration: const Duration(milliseconds: 500),
     );
-
-    messageAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: messageController!,
-        curve: Curves.elasticOut,
-      ),
+    messageAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: messageController, curve: Curves.elasticOut),
     );
   }
 
   void _onTileTap(int index) {
-    if (revealed[index]) return;
-
-    setState(() {
-      _controllers[index].forward();
-      Future.delayed(const Duration(milliseconds: 200), () {
-        revealed[index] = true;
-
-        if (numbers[index] == nextNumber) {
-          nextNumber++;
-          if (nextNumber > numbers.length) {
-            // Player won, cancel the timer
-            gameTimer?.cancel();
-            Future.delayed(const Duration(milliseconds: 500), () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => WinScreen(
-                    attempts: attempts,
-                    difficultyLevel: widget.difficultyLevel,
-                  ),
+    if (!revealed[index]) return;
+    _controllers[index].forward();
+    Future.delayed(const Duration(milliseconds: 200), () {
+      setState(() => revealed[index] = false);
+      if (numbers[index] == nextNumber) {
+        nextNumber++;
+        if (nextNumber > numbers.length) {
+          gameTimer?.cancel();
+          Future.delayed(const Duration(milliseconds: 500), () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => WinScreen(
+                  attempts: attempts,
+                  difficultyLevel: widget.difficultyLevel,
                 ),
-              );
-            });
-          }
-        } else {
-          attempts++;
-          Future.delayed(const Duration(milliseconds: 400), () {
-            setState(() {
-              revealed = List.filled(numbers.length, false);
-              nextNumber = 1;
-              _resetAnimations();
-            });
-            _showBlameMessage();
+              ),
+            );
           });
         }
-      });
+      } else {
+        attempts++;
+        Future.delayed(const Duration(milliseconds: 400), () {
+          setState(() {
+            revealed = List.filled(numbers.length, true);
+            nextNumber = 1;
+            for (var c in _controllers) {
+              c.reverse();
+            }
+          });
+          _showBlameMessage();
+        });
+      }
     });
   }
 
   void _resetAnimations() {
-    for (var controller in _controllers) {
-      controller.reverse();
+    for (var c in _controllers) {
+      c.reset();
     }
   }
 
   void _showBlameMessage() {
-    // Only show message if enough attempts have passed since last message
     if (attempts - lastMessageAttempt < 3) return;
-
-    // Random chance to show message (50% probability)
     if (Random().nextDouble() > 0.5) return;
-
-    String newMessage;
-    List<String> messagePool;
-
-    // Select message pool based on number of attempts
-    if (attempts <= 5) {
-      messagePool = gentleMessages;
-    } else if (attempts <= 10) {
-      messagePool = mediumMessages;
-    } else {
-      messagePool = harshMessages;
-    }
-
-    // Get a random message from the selected pool
+    final pool = attempts <= 5
+        ? gentleMessages
+        : attempts <= 10
+            ? mediumMessages
+            : harshMessages;
+    String msg;
     do {
-      newMessage = messagePool[Random().nextInt(messagePool.length)];
-    } while (newMessage == lastMessage);
-
-    lastMessage = newMessage;
+      msg = pool[Random().nextInt(pool.length)];
+    } while (msg == lastMessage);
+    lastMessage = msg;
     lastMessageAttempt = attempts;
-
     setState(() {
-      currentMessage = newMessage;
+      currentMessage = msg;
       showMessage = true;
     });
-
-    // Reset and start animation
-    messageController?.reset();
-    messageController?.forward();
-
-    // Cancel any existing message timer
+    messageController
+      ..reset()
+      ..forward();
     messageTimer?.cancel();
-
-    // Set new timer to hide message
     messageTimer = Timer(const Duration(seconds: 5), () {
-      if (mounted) {
-        setState(() {
-          showMessage = false;
-        });
-      }
+      if (mounted) setState(() => showMessage = false);
     });
   }
 
@@ -271,7 +231,7 @@ class MemoryGameState extends State<MemoryGame> with TickerProviderStateMixin {
     for (var c in _controllers) {
       c.dispose();
     }
-    messageController?.dispose();
+    messageController.dispose();
     gameTimer?.cancel();
     memorizationTimer?.cancel();
     messageTimer?.cancel();
@@ -279,9 +239,10 @@ class MemoryGameState extends State<MemoryGame> with TickerProviderStateMixin {
   }
 
   String formatTime(int seconds) {
-    int minutes = seconds ~/ 60;
-    int remainingSeconds = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    return '${m.toString().padLeft(2, '0')}:'
+        '${s.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -289,51 +250,39 @@ class MemoryGameState extends State<MemoryGame> with TickerProviderStateMixin {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF9C4),
       appBar: AppBar(
-        title: const Text("Sequence Match"),
+        title: const Text('Sequence Match'),
         backgroundColor: const Color(0xFFFF7043),
         elevation: 0,
         actions: [
           TextButton.icon(
-            onPressed: () {
-              // Show confirmation dialog
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text('Give Up?'),
-                    content: const Text('Are you sure you want to give up?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text('No, Keep Playing'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context); // Close dialog
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const DifficultyScreen(),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          'Yes, Give Up',
-                          style: TextStyle(color: Colors.red),
+            onPressed: () => showDialog(
+              context: context,
+              builder: (_) => AlertDialog(
+                title: const Text('Give Up?'),
+                content: const Text('Are you sure you want to give up?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('No, Keep Playing'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const DifficultyScreen(),
                         ),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-            icon: const Icon(Icons.stop_circle, color: Colors.white),
-            label: const Text(
-              'Give Up',
-              style: TextStyle(color: Colors.white),
+                      );
+                    },
+                    child: const Text('Yes, Give Up',
+                        style: TextStyle(color: Colors.red)),
+                  ),
+                ],
+              ),
             ),
+            icon: const Icon(Icons.stop_circle, color: Colors.white),
+            label: const Text('Give Up', style: TextStyle(color: Colors.white)),
           ),
           const SizedBox(width: 8),
         ],
@@ -346,49 +295,53 @@ class MemoryGameState extends State<MemoryGame> with TickerProviderStateMixin {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Center(
-                    child: Text(
-                      "Time Left: ${formatTime(remainingSeconds)}",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color:
-                              remainingSeconds <= 20 ? Colors.red : Colors.black),
+                  child: Text(
+                    'Time Left: ${formatTime(remainingSeconds)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: remainingSeconds <= 20 ? Colors.red : Colors.black,
                     ),
                   ),
                 ),
-                // Grid
-                GridView.builder(
-                  shrinkWrap: true,
-                  itemCount: numbers.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: widget.difficultyLevel.gridSize,
-                    crossAxisSpacing: 6,
-                    mainAxisSpacing: 6,
-                  ),
-                  itemBuilder: (context, index) {
-                    return GestureDetector(
-                      onTap: () => _onTileTap(index),
-                      child: AnimatedBuilder(
-                        animation: _animations[index],
-                        builder: (context, child) {
-                          final angle = _animations[index].value;
-                          final isFront = angle < pi / 2;
-
-                          return Transform(
-                            alignment: Alignment.center,
-                            transform: Matrix4.rotationY(angle),
-                            child: Stack(
-                              children: [
-                                _buildTile(index, false),
-                                Transform(
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final maxWidth = min(constraints.maxWidth * 0.9, 600);
+                    return SizedBox(
+                      width: maxWidth.toDouble(),
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        itemCount: numbers.length,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: widget.difficultyLevel.gridSize,
+                          crossAxisSpacing: 6,
+                          mainAxisSpacing: 6,
+                        ),
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            onTap: () => _onTileTap(index),
+                            child: AnimatedBuilder(
+                              animation: _animations[index],
+                              builder: (context, child) {
+                                final angle = _animations[index].value;
+                                final isFront = angle < pi / 2;
+                                return Transform(
                                   alignment: Alignment.center,
-                                  transform: Matrix4.rotationY(pi),
-                                  child: isFront
-                                      ? Container()
-                                      : _buildTile(index, true),
-                                ),
-                              ],
+                                  transform: Matrix4.rotationY(angle),
+                                  child: Stack(
+                                    children: [
+                                      _buildTile(index, true),
+                                      Transform(
+                                        alignment: Alignment.center,
+                                        transform: Matrix4.rotationY(pi),
+                                        child: isFront
+                                            ? Container()
+                                            : _buildTile(index, false),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
                             ),
                           );
                         },
@@ -405,10 +358,10 @@ class MemoryGameState extends State<MemoryGame> with TickerProviderStateMixin {
               left: 0,
               right: 0,
               child: AnimatedBuilder(
-                animation: messageAnimation!,
+                animation: messageAnimation,
                 builder: (context, child) {
                   return Transform.scale(
-                    scale: messageAnimation!.value,
+                    scale: messageAnimation.value,
                     child: Container(
                       margin: const EdgeInsets.symmetric(horizontal: 20),
                       padding: const EdgeInsets.symmetric(
@@ -445,23 +398,24 @@ class MemoryGameState extends State<MemoryGame> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildTile(int index, bool isRevealed) {
+  Widget _buildTile(int index, bool faceUp) {
+    final reveal = faceUp || (isMemorizationPhase && revealed[index]);
     return Container(
       decoration: BoxDecoration(
-        color: isRevealed || isMemorizationPhase ? const Color(0xFF4FC3F7) : const Color(0xFFE0E0E0),
+        color: reveal ? const Color(0xFF4FC3F7) : const Color(0xFFE0E0E0),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Center(
-        child: (isRevealed || isMemorizationPhase)
+        child: reveal
             ? Text(
-                "${numbers[index]}",
+                '${numbers[index]}',
                 style: const TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               )
-            : Container(),
+            : const SizedBox.shrink(),
       ),
     );
   }
