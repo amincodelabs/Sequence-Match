@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:sequence_match/src/win_screen.dart';
 import 'package:sequence_match/src/difficulty_screen.dart';
+import 'package:sequence_match/src/win_screen.dart';
 
 import 'lost_screen.dart'; // Ensure gif_view: ^1.0.1 in pubspec.yaml
 
@@ -131,7 +129,8 @@ class MemoryGameState extends State<MemoryGame> with TickerProviderStateMixin {
   void _setupAnimations() {
     _controllers = [];
     _animations = [];
-    final totalTiles = widget.difficultyLevel.gridSize * widget.difficultyLevel.gridSize;
+    final totalTiles =
+        widget.difficultyLevel.gridSize * widget.difficultyLevel.gridSize;
     for (var i = 0; i < totalTiles; i++) {
       final controller = AnimationController(
         vsync: this,
@@ -194,7 +193,9 @@ class MemoryGameState extends State<MemoryGame> with TickerProviderStateMixin {
   }
 
   void _resetAnimations() {
-    for (var c in _controllers) c.reset();
+    for (var c in _controllers) {
+      c.reset();
+    }
   }
 
   void _showBlameMessage() {
@@ -203,10 +204,12 @@ class MemoryGameState extends State<MemoryGame> with TickerProviderStateMixin {
     final pool = attempts <= 5
         ? gentleMessages
         : attempts <= 10
-        ? mediumMessages
-        : harshMessages;
+            ? mediumMessages
+            : harshMessages;
     String msg;
-    do { msg = pool[Random().nextInt(pool.length)]; } while (msg == lastMessage);
+    do {
+      msg = pool[Random().nextInt(pool.length)];
+    } while (msg == lastMessage);
     lastMessage = msg;
     lastMessageAttempt = attempts;
     setState(() {
@@ -224,7 +227,9 @@ class MemoryGameState extends State<MemoryGame> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    for (var c in _controllers) c.dispose();
+    for (var c in _controllers) {
+      c.dispose();
+    }
     messageController.dispose();
     gameTimer?.cancel();
     memorizationTimer?.cancel();
@@ -269,7 +274,8 @@ class MemoryGameState extends State<MemoryGame> with TickerProviderStateMixin {
                         ),
                       );
                     },
-                    child: const Text('Yes, Give Up', style: TextStyle(color: Colors.red)),
+                    child: const Text('Yes, Give Up',
+                        style: TextStyle(color: Colors.red)),
                   ),
                 ],
               ),
@@ -327,7 +333,9 @@ class MemoryGameState extends State<MemoryGame> with TickerProviderStateMixin {
                                       Transform(
                                         alignment: Alignment.center,
                                         transform: Matrix4.rotationY(pi),
-                                        child: isFront ? Container() : _buildTile(index, false),
+                                        child: isFront
+                                            ? Container()
+                                            : _buildTile(index, false),
                                       ),
                                     ],
                                   ),
@@ -399,13 +407,13 @@ class MemoryGameState extends State<MemoryGame> with TickerProviderStateMixin {
       child: Center(
         child: reveal
             ? Text(
-          '${numbers[index]}',
-          style: const TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        )
+                '${numbers[index]}',
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              )
             : const SizedBox.shrink(),
       ),
     );
