@@ -1,7 +1,12 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
-import 'package:sequence_match/src/difficulty_screen.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:gif_view/gif_view.dart';
 import 'package:sequence_match/src/ready_go_screen.dart';
+import 'package:sequence_match/src/difficulty_screen.dart';
+import 'package:lottie/lottie.dart';
 
 class WinScreen extends StatelessWidget {
   final int attempts;
