@@ -1,16 +1,7 @@
-# sequence_match
+# Sequence Match
 
-A new Flutter project.
+This is a simple memory game where you have to remember a sequence of colors and tap them in
+the correct order. The game gets progressively harder with each level.
 
-## Getting Started
+A Show case to demonstrate simple game development using Dart and Flutter.
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
