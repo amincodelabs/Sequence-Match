@@ -1,0 +1,2 @@
+/Users/aminchahardoli/AndroidStudioProjects/sequence_match/android/app/.cxx/RelWithDebInfo/522w3d3l/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/aminchahardoli/AndroidStudioProjects/sequence_match/android/app/.cxx/RelWithDebInfo/522w3d3l/armeabi-v7a/CMakeFiles/rebuild_cache.dir
