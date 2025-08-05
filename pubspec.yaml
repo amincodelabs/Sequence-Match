@@ -1,5 +1,5 @@
 name: sequence_match
-description: "A new Flutter project."
+description: "This is a simple memory game where you have to remember a sequence of colors and tap them in the correct order. The game gets progressively harder with each level."
 publish_to: 'none'
 
 version: 1.0.0+1
